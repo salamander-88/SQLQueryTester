@@ -1,0 +1,25 @@
+<html><font style="font-size: 14pt; font-family: sans-serif;"><b><i>Table</b></i><br/></font>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">The table is called <i>patients</i> and consists of the following columns:<br/>
+<ui><li><span style = "font-style:italic; font-weight:bold">id</span> - unique patient identificator;</li>
+<li><span style = "font-style:italic; font-weight:bold">name</span> - first name of a patient in the string format;</li>
+<li><span style = "font-style:italic; font-weight:bold">surname</span> - last name of a patient in the string format;</li>
+<li><span style = "font-style:italic; font-weight:bold">appointment</span> - date/time of a patient's visit to a doctor in the string format;</li>
+<li><span style = "font-style:italic; font-weight:bold">image</span> - photo of a patient.</li></ui></font>
+<div style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">By default the table contains the same 25 tuples after launch.</div><br/>
+<font style="font-size: 14pt; font-family: sans-serif;"><b><i>Id</b></i></font><br/>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">Id has the integer format and is assigned the PRIMARY_KEY constraint. The PRIMARY_KEY 
+constraint means that there has to be no tuples with duplicated ids and the ids cannot be null.</font><br/><br/>
+<font style="font-size: 14pt; font-family: sans-serif;"><b><i>Name and Surname</b></i></font><br/>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">Columns <i>name</i> and <i>surname</i> have the string format and can accept <i>null</i> values.</font><br/><br/>
+<font style="font-size: 14pt; font-family: sans-serif;"><b><i>Appointment</b></i></font><br/>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">The <i>appointment</i> column contains string values, which implies that there is no specific data 
+input format. Thus, the format of input values as well as their validation is a responsibility
+of the user. This column can store <i>null</i> values.<br/><br/></font>
+<font style="font-size: 14pt; font-family: sans-serif;"><b><i>Image</b></i></font><br/>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">To store an image into the database, the full image file path is needed. The path in the string 
+format should be written in <i>insert</i> SQL clause at the <i>image</i> place.<br/><br/>
+<i><u>Example</u>: </i></font><font style="font-size: 12pt; font-family: courier;">insert into patients values(26,'Anna','Smith','14-02-2014:11.00','D://images/image.jpg');</font><br/><br/>
+<font style="padding-left: 5em; font-size: 12pt; font-family: sans-serif;">In order to store a tuple without an image, one can indicate the <i>null</i> value or an empty string.<br/><br/>
+<i><u>Example</u>: </i></font><font style="font-size: 12pt; font-family: courier;">insert into patients values(26,'Anna','Smith','14-02-2014:11.00',null);</font><br/><br/>
+<font style="font-size: 14pt; font-family: sans-serif;">or<br/><br/>
+<i><u>Example</u>: </i></font><font style="font-size: 12pt; font-family: courier;">insert into patients values(26,'Anna','Smith','14-02-2014:11.00','');<br/><br/></font>
