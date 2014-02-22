@@ -21,7 +21,6 @@ public final class FileManager
         }
 		catch(Exception e)
 		{
-			e.printStackTrace();
 			return e.getMessage();
         } 
 		finally 

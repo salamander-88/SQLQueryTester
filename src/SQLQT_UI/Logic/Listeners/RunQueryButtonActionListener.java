@@ -23,8 +23,9 @@ import SQLQT_Utilities.TableManager;
  *
  */
 public class RunQueryButtonActionListener implements ActionListener{
-	
+
 	private JEditorPane sqlSyntaxPane;
+	//private String query;
 	private JTextPane textPane_Response;
 	private JScrollPane scrollPane_selectResult;
 	private JScrollPane scrollPane_textResponse;
@@ -32,7 +33,7 @@ public class RunQueryButtonActionListener implements ActionListener{
 	private StatusBar statusBar;
 	private JTable table;
 	private JFrame frame;
-	
+
 	public RunQueryButtonActionListener(JFrame frame, JTable table, JEditorPane sqlSyntaxPane, JTextPane textPane_Response, JScrollPane scrollPane_selectResult, JScrollPane scrollPane_textResponse, JTabbedPane tabbedPane, StatusBar statusBar)
 	{
 		this.frame = frame;
@@ -44,101 +45,106 @@ public class RunQueryButtonActionListener implements ActionListener{
 		this.tabbedPane = tabbedPane;
 		this.statusBar = statusBar;
 	}
-	
-	public void actionPerformed(ActionEvent arg0) {
-		
-		String query = sqlSyntaxPane.getText();
-		if(!query.equals("Enter query here...") && !query.equals(""))
-		{
-			String[] subQueries = query.split(";"); //array of sub-queries if multiple queries were typed 
-			
-			boolean error = false; //indicates if some error occurs during transaction processing
-			try 
-			{
-				//open transaction
-				ConnectionToBD.con.setAutoCommit(false);
-				for(int i=0; i<subQueries.length; i++)
-				{
-					if(!subQueries[i].replace("\n", "").equals("")) //exclude empty queries
-					{
-						//clean result pane
-						if(scrollPane_selectResult.getViewport().getComponentCount() > 0) 
-						{
-							scrollPane_selectResult.getViewport().remove(0);
-							scrollPane_selectResult.getViewport().revalidate();
-							scrollPane_selectResult.getViewport().repaint();
-						}
-						//clean response pane
-						if(!textPane_Response.getText().equals("")) textPane_Response.setText("");
 
-						if(!error)
+	public void actionPerformed(ActionEvent arg0) 
+	{
+		new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				String query = sqlSyntaxPane.getText();
+				if(!query.equals("Enter query here...") && !query.equals(""))
+				{
+					String[] subQueries = query.split(";"); //array of sub-queries if multiple queries were typed 
+
+					boolean error = false; //indicates if some error occurs during transaction processing
+					try 
+					{
+						//open transaction
+						ConnectionToBD.con.setAutoCommit(false);
+						for(int i=0; i<subQueries.length; i++)
 						{
-							if(subQueries[i].contains("select")) //process select query
+							if(!subQueries[i].replace("\n", "").equals("")) //exclude empty queries
 							{
-								statusBar.setStatus("Running");
-								Object res = TableManager.getTableWithResult(subQueries[i], textPane_Response, statusBar);
-								if(res != null) //if no error
+								//clean result pane
+								if(scrollPane_selectResult.getViewport().getComponentCount() > 0) 
 								{
-									Font font = new Font("Courier New", Font.PLAIN, 14);
-									Font tableHeaderFont = new Font("Courier New", Font.BOLD, 14);
-									Pair<JTable,Long> answer = (Pair<JTable,Long>) res;
-									JTable table = answer.getL();
-									table.getTableHeader().setFont(tableHeaderFont);
-									table.setFont(font);
-									TableMouseListener mouseListener = new TableMouseListener(table, frame);
-									table.addMouseListener(mouseListener);
-									table.addMouseMotionListener(mouseListener);
-									long processingTime = answer.getR();
-									//display select results
-									scrollPane_selectResult.setViewportView(table);
-									tabbedPane.setSelectedComponent(scrollPane_selectResult);
-									textPane_Response.setText("Select was done succesfully.\n" + table.getRowCount() + " rows returned");
-									statusBar.setStatus("Ready");
-									statusBar.setTime(processingTime);
+									scrollPane_selectResult.getViewport().remove(0);
+									scrollPane_selectResult.getViewport().revalidate();
+									scrollPane_selectResult.getViewport().repaint();
 								}
-								else 
+								//clean response pane
+								if(!textPane_Response.getText().equals("")) textPane_Response.setText("");
+
+								if(!error)
 								{
-									//display error
-									tabbedPane.setSelectedComponent(scrollPane_textResponse);
-									error = true;
+									if(subQueries[i].contains("select")) //process select query
+									{
+										statusBar.updateStatus("Running", -1);
+										Object res = TableManager.getTableWithResult(subQueries[i], textPane_Response, statusBar);
+										if(res != null) //if no error
+										{
+											Font font = new Font("Courier New", Font.PLAIN, 14);
+											Font tableHeaderFont = new Font("Courier New", Font.BOLD, 14);
+											Pair<JTable,Long> answer = (Pair<JTable,Long>) res;
+											JTable table = answer.getL();
+											table.getTableHeader().setFont(tableHeaderFont);
+											table.setFont(font);
+											TableMouseListener mouseListener = new TableMouseListener(table, frame);
+											table.addMouseListener(mouseListener);
+											table.addMouseMotionListener(mouseListener);
+											long processingTime = answer.getR();
+											//display select results
+											scrollPane_selectResult.setViewportView(table);
+											tabbedPane.setSelectedComponent(scrollPane_selectResult);
+											textPane_Response.setText("Select was done succesfully.\n" + table.getRowCount() + " rows returned");
+											statusBar.updateStatus("Ready", processingTime);
+										}
+										else 
+										{
+											//display error
+											tabbedPane.setSelectedComponent(scrollPane_textResponse);
+											error = true;
+										}
+									}
+									else //process other queries
+									{
+										tabbedPane.setSelectedComponent(scrollPane_textResponse);
+										statusBar.updateStatus("Running", -1);
+										long start = System.currentTimeMillis();
+										Object result = DBManager.updateQuery(subQueries[i]);
+										long finish = System.currentTimeMillis();
+										long time = finish-start;
+										if(result.getClass().getName().toString().contains("Integer")) //if no error
+										{
+											if((Integer)result == 1) textPane_Response.setText("Request was done succesfully.\n1 row was affected");
+											else textPane_Response.setText("Request was done succesfully.\n" + (Integer)result + " rows were affected");
+											statusBar.updateStatus("Ready", time);
+										}
+										else if(result.getClass().getName().contains("String")) 
+										{
+											//display error
+											String str = (String)result;
+											textPane_Response.setText(str);
+											statusBar.updateStatus("Error: " + str, -1);
+											error = true;
+										}
+									}
 								}
-							}
-							else //process other queries
-							{
-								tabbedPane.setSelectedComponent(scrollPane_textResponse);
-								statusBar.setStatus("Running");
-								long start = System.currentTimeMillis();
-								Object result = DBManager.updateQuery(subQueries[i]);
-								long finish = System.currentTimeMillis();
-								long time = finish-start;
-								if(result.getClass().getName().toString().contains("Integer")) //if no error
-								{
-									if((Integer)result == 1) textPane_Response.setText("Request was done succesfully.\n1 row was affected");
-									else textPane_Response.setText("Request was done succesfully.\n" + (Integer)result + " rows were affected");
-									statusBar.setStatus("Ready");
-									statusBar.setTime(time);
-								}
-								else if(result.getClass().getName().contains("String")) 
-								{
-									//display error
-									String str = (String)result;
-									textPane_Response.setText(str);
-									statusBar.setStatus("Error: " + str);
-									error = true;
-								}
+								else break;
 							}
 						}
-						else break;
+						//if error occur during transaction execution, roll back changes
+						if(error) ConnectionToBD.con.rollback();
+						else ConnectionToBD.con.commit();
+					} catch (SQLException e) {
+						e.printStackTrace();
 					}
 				}
-				//if error occur during transaction execution, roll back changes
-				if(error) ConnectionToBD.con.rollback();
-				else ConnectionToBD.con.commit();
-				//display sample table with possible changes
-				TableManager.displayRowsFromDB(table);
-			} catch (SQLException e) {
-				e.printStackTrace();
 			}
-		}
+		}).start();
+		//display sample table with possible changes
+		TableManager.displayRowsFromDB(table);
 	}
 }

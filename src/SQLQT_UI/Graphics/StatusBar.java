@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 /**
  * 
@@ -48,21 +49,49 @@ public class StatusBar extends JPanel
 		this.setFont("Arial", Font.PLAIN, 11);
 	}
 	
-	public void setFont(String name, int stile, int size)
+	protected void setFont(String name, int stile, int size)
 	{
 		this.getComponent(1).setFont(new Font(name, stile, size));
 		this.getComponent(this.getComponentCount()-1).setFont(new Font(name, stile, size));
 	}
 	
-	public void setStatus(String statusString)
+	protected void setStatus(String statusString)
 	{
 		JLabel status = (JLabel) this.getComponent(1);
 		status.setText(statusString);
+		//status.paintImmediately(status.getBounds());
 	}
 	
-	public void setTime(long processingTime)
+	protected void setTime(long processingTime)
 	{
 		JLabel time = (JLabel) this.getComponent(this.getComponentCount()-1);
-		time.setText(String.valueOf(processingTime) + " ms");
+		if(processingTime == -1)
+			time.setText("");
+		else
+			time.setText(String.valueOf(processingTime) + " ms");
+	}
+	
+	public void updateStatus(String statusString, long processingTime)
+	{
+		class UpdateTask implements Runnable {
+			StatusBar statusBar;
+	        String statusString;
+	        long processingTime;
+	        
+	        UpdateTask(StatusBar statusBar, String statusString, long processingTime)
+	        { 
+	        	this.statusBar = statusBar;
+	        	this.statusString = statusString;
+	        	this.processingTime = processingTime;
+	        }
+	        public void run() {
+	        	statusBar.setStatus(statusString);
+	        	statusBar.setTime(processingTime);
+	        }
+	    }
+	    //Thread t = new Thread(new OneShotTask(this, statusString, processingTime));
+	    //t.start();
+	    
+		SwingUtilities.invokeLater(new UpdateTask(this, statusString, processingTime));
 	}
 }

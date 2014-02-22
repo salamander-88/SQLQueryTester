@@ -41,7 +41,6 @@ import org.apache.commons.io.IOUtils;
 import SQLQT_UI.Logic.Listeners.*;
 import SQLQT_Utilities.ConnectionToBD;
 import SQLQT_Utilities.DBManager;
-import SQLQT_Utilities.FileManager;
 import SQLQT_Utilities.TableManager;
 
 import jsyntaxpane.DefaultSyntaxKit;
@@ -173,13 +172,22 @@ public class SQLQueryTesterUI extends JFrame {
 		mnFile.add(menuItem3);
 		menuBar.add(mnFile);
 		
+		JMenu mnTable = new JMenu("Table");
+		mnTable.setFont(menuFont);
+		JMenuItem menuItem4 = new JMenuItem("Reset table");
+		menuItem4.setFont(menuFont);
+		ResetTableActionListener resetTableActionListener = new ResetTableActionListener(table, textPane_Response, scrollPane_textResponse, tabbedPane, statusBar);
+		menuItem4.addActionListener(resetTableActionListener);
+		mnTable.add(menuItem4);
+		menuBar.add(mnTable);
+		
 		JMenu mnHelp = new JMenu("Help");
 		mnHelp.setFont(menuFont);
-		JMenuItem menuItem4 = new JMenuItem("Table description");
-		menuItem4.setFont(menuFont);
+		JMenuItem menuItem5 = new JMenuItem("Table description");
+		menuItem5.setFont(menuFont);
 		InfoButtonActionListener infoButtonActionListener = new InfoButtonActionListener(this, tabbedPane, textPane_Response);
-		menuItem4.addActionListener(infoButtonActionListener);
-		mnHelp.add(menuItem4);
+		menuItem5.addActionListener(infoButtonActionListener);
+		mnHelp.add(menuItem5);
 		menuBar.add(mnHelp);
 		
 		//==================== ADD TOOL BAR ========================
@@ -202,10 +210,12 @@ public class SQLQueryTesterUI extends JFrame {
 		byte[] resultArray2 = null;
 		byte[] resultArray3 = null;
 		byte[] resultArray4 = null;
+		byte[] resultArray5 = null;
 		InputStream is1 = null;
 		InputStream is2 = null;
 		InputStream is3 = null;
 		InputStream is4 = null;
+		InputStream is5 = null;
 		try
 		{
 			is1 = getClass().getResourceAsStream("/images/icon_transparent.png");
@@ -214,8 +224,10 @@ public class SQLQueryTesterUI extends JFrame {
 			resultArray2 = IOUtils.toByteArray(is2);
 			is3 = getClass().getResourceAsStream("/images/save_sql.png");
 			resultArray3 = IOUtils.toByteArray(is3);
-			is4 = getClass().getResourceAsStream("/images/i_table.png");
+			is4 = getClass().getResourceAsStream("/images/reset_table.png");
 			resultArray4 = IOUtils.toByteArray(is4);
+			is5 = getClass().getResourceAsStream("/images/i_table.png");
+			resultArray5 = IOUtils.toByteArray(is5);
 		}
 		catch(Exception e)
 		{
@@ -229,6 +241,7 @@ public class SQLQueryTesterUI extends JFrame {
 				is2.close();
 				is3.close();
 				is4.close();
+				is5.close();
 			} 
 			catch (IOException e1) 
 			{
@@ -274,10 +287,18 @@ public class SQLQueryTesterUI extends JFrame {
 		
 		ToolBarButton btnNewButton_4 = new ToolBarButton(ic4);
 		btnNewButton_4.setFocusPainted(false);
-		btnNewButton_4.setToolTipText("Table description");
-		btnNewButton_4.addActionListener(infoButtonActionListener);
+		btnNewButton_4.setToolTipText("Reset table");
+		btnNewButton_4.addActionListener(resetTableActionListener);
 		toolBar.add(btnNewButton_4);
 				
+		ImageIcon ic5 = new ImageIcon(resultArray5);
+		
+		ToolBarButton btnNewButton_5 = new ToolBarButton(ic5);
+		btnNewButton_5.setFocusPainted(false);
+		btnNewButton_5.setToolTipText("Table description");
+		btnNewButton_5.addActionListener(infoButtonActionListener);
+		toolBar.add(btnNewButton_5);
+		
 		contentPane.add(Box.createRigidArea(new Dimension(0,1)));
 		contentPane.add(toolBar);
 		contentPane.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -289,7 +310,7 @@ public class SQLQueryTesterUI extends JFrame {
 		table.getTableHeader().setFont(tableHeaderFont);
 		table.setFont(font);
 		TableManager.displayRowsFromDB(table);
-		table.getColumnModel().getColumn(4).setCellRenderer(table.getDefaultRenderer(ImageIcon.class));
+		//table.getColumnModel().getColumn(4).setCellRenderer(table.getDefaultRenderer(ImageIcon.class));
 		table.setPreferredScrollableViewportSize(new Dimension(500, 70));
 		table.setFillsViewportHeight(true);
 		((DefaultTableModel)table.getModel()).fireTableDataChanged();

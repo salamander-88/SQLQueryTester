@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import SQLQT_UI.Graphics.StatusBar;
 /**
  * 
  * @author Anastasiya Goncharova
@@ -18,57 +17,28 @@ public final class DBManager
 	 */
 	public static void initializeDatabase()
 	{
-		String imgPath = "";
-		String[][] names = {{"Erick","Schmidt"},{"Robert","Richardson"},{"Adam","Cast"},{"Alex","Fishman"},{"Mike","Adams"},
-							{"Ivan","Aivazovsky"},{"John","Richman"},{"Allan","Smith"},{"Jorge","Axe"},{"Democritus",""},
-							{"John","Adams"},{"Marry","Allis"},{"Sarra","Royal"},{"Maria","Razumovska"},{"Linda","Smith"},
-							{"Scrooge","McDuck"},{"Anna","Morozova"},{"Marina","Ivanova"},{"Natalia","Kuznezova"},{"Maria","Zubareva"},
-							{"Leonardo","da Vinci"},{"Mona","Lisa"},{"Nina","Kraft"},{"Antonio","Barrelli"},{"Kim","Cho"}};
-		byte[] img = null;
-		
+		DBManager.recreateTable();
+		DBManager.fillInTableWithSampleData();
+	}
+	
+	protected static void recreateTable()
+	{
 		Statement st = null;
-		PreparedStatement pst = null;
-		try
+		try 
 		{
 			st = ConnectionToBD.con.createStatement();
-			
 			st.executeUpdate("drop table if exists patients");
 			st.executeUpdate("create table patients (id integer primary key, firstname string, lastname string, appointment char(10), image blob)");
-			
-			String insertQuery = "insert into patients values(?,?,?,?,?);";
-			pst = ConnectionToBD.con.prepareStatement(insertQuery);
-			for(int i=1; i<=25; i++)
-			{
-				imgPath = "/images/man" + i + ".png";
-				Object res = FileManager.getByteArrayFromFile(imgPath);
-				if(res != null && !res.getClass().getName().toString().contains("String")) 
-				{
-					//img = (byte[]) FileManager.getByteArrayFromFile(imgPath);
-					img = (byte[]) res;
-					pst.setInt(1, i);
-					pst.setString(2, names[i-1][0]);
-					pst.setString(3, names[i-1][1]);
-					pst.setString(4, "2013-12-" + (i));
-					pst.setBytes(5, img);
-					pst.executeUpdate();
-				}
-				else
-				{
-					if(res == null)
-					System.out.println("null");
-				}
-			}
-		}
-		catch(SQLException e)
+		} 
+		catch (SQLException e) 
 		{
-			System.err.println(e.getMessage());
-	    }
-	    finally
+			e.printStackTrace();
+		}
+		finally
 	    {
 	      try
 	      {
 	    	  if(st != null) st.close();
-	    	  if(pst != null) pst.close();
 	      }
 	      catch(SQLException e)
 	      {
@@ -77,12 +47,117 @@ public final class DBManager
 	      }
 	    }
 	}
-
-	public static ResultSet getAllRowsFromDatabase() throws SQLException
+	
+	public static Object resetTable()
 	{
+		Object result = null;
+		result = DBManager.removeAllRowsFromDB();
+		if(!result.getClass().getName().toString().contains("String"))
+			result = DBManager.fillInTableWithSampleData();
+		return result;
+	}
+	
+	public static Object fillInTableWithSampleData()
+	{
+		Object result = null;
+		String imgPath = "";
+		String[][] names = {{"Erick","Schmidt"},{"Robert","Richardson"},{"Adam","Cast"},{"Alex","Fishman"},{"Mike","Adams"},
+							{"Ivan","Aivazovsky"},{"John","Richman"},{"Allan","Smith"},{"Jorge","Axe"},{"Democritus",""},
+							{"John","Adams"},{"Marry","Allis"},{"Sarra","Royal"},{"Maria","Razumovska"},{"Linda","Smith"},
+							{"Scrooge","McDuck"},{"Anna","Morozova"},{"Marina","Ivanova"},{"Natalia","Kuznezova"},{"Maria","Zubareva"},
+							{"Leonardo","da Vinci"},{"Mona","Lisa"},{"Nina","Kraft"},{"Antonio","Barrelli"},{"Kim","Cho"}};
+		byte[] img = null;
+		PreparedStatement pst = null;
+		try
+		{
+			ConnectionToBD.con.setAutoCommit(false);
+			String insertQuery = "insert into patients values(?,?,?,?,?);";
+			pst = ConnectionToBD.con.prepareStatement(insertQuery);
+			int rowsCount = 0;
+			for(int i=1; i<=25; i++)
+			{
+				imgPath = "/images/man" + i + ".png";
+				Object res = FileManager.getByteArrayFromFile(imgPath);
+				if(res != null && !res.getClass().getName().toString().contains("String")) 
+				{
+					//img = (byte[]) FileManager.getByteArrayFromFile(imgPath);
+					img = (byte[]) res;
+					
+				}
+				else img = "null".getBytes();
+				
+				pst.setInt(1, i);
+				pst.setString(2, names[i-1][0]);
+				pst.setString(3, names[i-1][1]);
+				pst.setString(4, "2013-12-" + (i));
+				pst.setBytes(5, img);
+				pst.addBatch();
+				rowsCount ++;
+			}
+			pst.executeBatch();
+			ConnectionToBD.con.setAutoCommit(true);
+			result = rowsCount;
+		}
+		catch(SQLException e)
+		{
+			result = e.getMessage();
+	    }
+	    finally
+	    {
+	      try
+	      {
+	    	  if(pst != null) pst.close();
+	      }
+	      catch(SQLException e)
+	      {
+	        System.err.println(e);
+	      }
+	    }
+		return result;
+	}
+	
+	protected static Object removeAllRowsFromDB()
+	{
+		Object result = null;
+		Statement st = null;
+		try 
+		{
+			st = ConnectionToBD.con.createStatement();
+			result = st.executeUpdate("delete from patients");
+		} 
+		catch (SQLException e) 
+		{
+			result = e.getMessage();
+		}
+		finally
+	    {
+	      try
+	      {
+	    	  if(st != null) st.close();
+	      }
+	      catch(SQLException e)
+	      {
+	        System.err.println(e);
+	      }
+	    }
+		return result;
+	}
+	
+	public static ResultSet getAllRowsFromDatabase()
+	{
+		ResultSet result = null;
 		String query = "select id, firstname, lastname, appointment, image from patients";
-		Statement st = ConnectionToBD.con.createStatement();
-		ResultSet result = st.executeQuery(query);
+		Statement st;
+		try 
+		{
+			st = ConnectionToBD.con.createStatement();
+			result = st.executeQuery(query);
+		} 
+		catch (SQLException e) 
+		{
+			e.printStackTrace();
+		}
+		
 		return result;
 	}
 	

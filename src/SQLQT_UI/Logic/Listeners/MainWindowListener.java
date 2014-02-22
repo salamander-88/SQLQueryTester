@@ -3,13 +3,10 @@ package SQLQT_UI.Logic.Listeners;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.net.URISyntaxException;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import SQLQT_Utilities.ConnectionToBD;
-import SQLQT_Utilities.FileManager;
 /**
  * 
  * @author Anastasiya Goncharova
