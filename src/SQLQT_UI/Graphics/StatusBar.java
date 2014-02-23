@@ -55,6 +55,10 @@ public class StatusBar extends JPanel
 		this.getComponent(this.getComponentCount()-1).setFont(new Font(name, stile, size));
 	}
 	
+	/**
+	 * Sets the application status message slot on the status bar.
+	 * @param statusString - the application status message
+	 */
 	protected void setStatus(String statusString)
 	{
 		JLabel status = (JLabel) this.getComponent(1);
@@ -62,6 +66,10 @@ public class StatusBar extends JPanel
 		//status.paintImmediately(status.getBounds());
 	}
 	
+	/**
+	 * Sets the query processing time slot on the status bar.
+	 * @param processingTime - the time of query processing
+	 */
 	protected void setTime(long processingTime)
 	{
 		JLabel time = (JLabel) this.getComponent(this.getComponentCount()-1);
@@ -71,6 +79,13 @@ public class StatusBar extends JPanel
 			time.setText(String.valueOf(processingTime) + " ms");
 	}
 	
+	/**
+	 * Updates application's status bar. The status bar contains a slot for the application status message
+	 * and a slot for the query processing time. If processingTime equals -1, it means either there are no queries 
+	 * were processed by application or errors occurred. In this case time slot on the status bar is empty.
+	 * @param statusString - the application status message
+	 * @param processingTime - the time of query processing
+	 */
 	public void updateStatus(String statusString, long processingTime)
 	{
 		class UpdateTask implements Runnable {
@@ -89,7 +104,7 @@ public class StatusBar extends JPanel
 	        	statusBar.setTime(processingTime);
 	        }
 	    }
-	    //Thread t = new Thread(new OneShotTask(this, statusString, processingTime));
+	    //Thread t = new Thread(new UpdateTask(this, statusString, processingTime));
 	    //t.start();
 	    
 		SwingUtilities.invokeLater(new UpdateTask(this, statusString, processingTime));

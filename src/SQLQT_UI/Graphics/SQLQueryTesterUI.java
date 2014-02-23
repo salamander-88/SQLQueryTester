@@ -64,7 +64,7 @@ public class SQLQueryTesterUI extends JFrame {
 		Connection con = null;
 		try
 		{
-			con = DriverManager.getConnection("jdbc:sqlite:patients.db");
+			con = DriverManager.getConnection("jdbc:sqlite:patients" + DBManager.tableId + ".db");
 		}
 		catch(SQLException e)
 		{
@@ -93,9 +93,9 @@ public class SQLQueryTesterUI extends JFrame {
 	 */
 	public SQLQueryTesterUI() throws ClassNotFoundException, SQLException 
 	{
-		setTitle("TestDB");
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		addWindowListener(new MainWindowListener());
+		setTitle("SQLQueryTester");
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new MainWindowListener(this));
 		setBounds(100, 100, 921, 562);
 		JPanel contentPane = new JPanel();
 		setContentPane(contentPane);
@@ -176,7 +176,7 @@ public class SQLQueryTesterUI extends JFrame {
 		mnTable.setFont(menuFont);
 		JMenuItem menuItem4 = new JMenuItem("Reset table");
 		menuItem4.setFont(menuFont);
-		ResetTableActionListener resetTableActionListener = new ResetTableActionListener(table, textPane_Response, scrollPane_textResponse, tabbedPane, statusBar);
+		ResetTableActionListener resetTableActionListener = new ResetTableActionListener(this, table, textPane_Response, scrollPane_textResponse, tabbedPane, statusBar);
 		menuItem4.addActionListener(resetTableActionListener);
 		mnTable.add(menuItem4);
 		menuBar.add(mnTable);

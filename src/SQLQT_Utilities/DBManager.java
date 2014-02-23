@@ -12,6 +12,19 @@ import java.sql.Statement;
  */
 public final class DBManager
 {
+	public static final String tableId = DBManager.generateTableID(); //unique table identifier for each application instance to avoid table access concurrency
+	
+	/**
+	 * Generates a unique table identifier based on the current time in milliseconds
+	 * @return
+	 */
+	private static String generateTableID()
+	{
+		String id = "";
+		id = String.valueOf(System.currentTimeMillis());
+		return id;
+	}
+	
 	/**
 	 * Creates the table patients in database and fills it in with the sample data
 	 */
@@ -21,14 +34,17 @@ public final class DBManager
 		DBManager.fillInTableWithSampleData();
 	}
 	
+	/**
+	 * Drops existing table and creates new one.
+	 */
 	protected static void recreateTable()
 	{
 		Statement st = null;
 		try 
 		{
 			st = ConnectionToBD.con.createStatement();
-			st.executeUpdate("drop table if exists patients");
-			st.executeUpdate("create table patients (id integer primary key, firstname string, lastname string, appointment char(10), image blob)");
+			st.executeUpdate("drop table if exists patients" + tableId);
+			st.executeUpdate("create table patients" + tableId + " (id integer primary key, firstname string, lastname string, appointment char(10), image blob)");
 		} 
 		catch (SQLException e) 
 		{
@@ -48,6 +64,10 @@ public final class DBManager
 	    }
 	}
 	
+	/**
+	 * Resets the table by filling it in with the sample rows.
+	 * @return either number of rows that were affected in successful case or error message otherwise
+	 */
 	public static Object resetTable()
 	{
 		Object result = null;
@@ -57,7 +77,11 @@ public final class DBManager
 		return result;
 	}
 	
-	public static Object fillInTableWithSampleData()
+	/**
+	 *  Fills in the created table with the sample rows.
+	 * @return either number of rows that were affected in successful case or error message otherwise
+	 */
+	protected static Object fillInTableWithSampleData()
 	{
 		Object result = null;
 		String imgPath = "";
@@ -71,7 +95,7 @@ public final class DBManager
 		try
 		{
 			ConnectionToBD.con.setAutoCommit(false);
-			String insertQuery = "insert into patients values(?,?,?,?,?);";
+			String insertQuery = "insert into patients" + tableId + " values(?,?,?,?,?);";
 			pst = ConnectionToBD.con.prepareStatement(insertQuery);
 			int rowsCount = 0;
 			for(int i=1; i<=25; i++)
@@ -123,7 +147,7 @@ public final class DBManager
 		try 
 		{
 			st = ConnectionToBD.con.createStatement();
-			result = st.executeUpdate("delete from patients");
+			result = st.executeUpdate("delete from patients" + tableId);
 		} 
 		catch (SQLException e) 
 		{
@@ -146,7 +170,7 @@ public final class DBManager
 	public static ResultSet getAllRowsFromDatabase()
 	{
 		ResultSet result = null;
-		String query = "select id, firstname, lastname, appointment, image from patients";
+		String query = "select id, firstname, lastname, appointment, image from patients" + tableId;
 		Statement st;
 		try 
 		{

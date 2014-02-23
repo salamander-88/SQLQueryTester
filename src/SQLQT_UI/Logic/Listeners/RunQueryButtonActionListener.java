@@ -48,6 +48,7 @@ public class RunQueryButtonActionListener implements ActionListener{
 
 	public void actionPerformed(ActionEvent arg0) 
 	{
+		//runs in a separate thread to unblock GUI
 		new Thread(new Runnable()
 		{
 			@Override
@@ -67,6 +68,7 @@ public class RunQueryButtonActionListener implements ActionListener{
 						{
 							if(!subQueries[i].replace("\n", "").equals("")) //exclude empty queries
 							{
+								if(subQueries[i].contains(" patients ")) subQueries[i] = subQueries[i].replace(" patients ", " patients" + DBManager.tableId + " ");
 								//clean result pane
 								if(scrollPane_selectResult.getViewport().getComponentCount() > 0) 
 								{
